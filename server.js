@@ -6,25 +6,58 @@ require('dotenv').config();
 
 const app = express();
 
-// Configure CORS based on environment
+// Configure CORS to allow multiple origins
+const allowedOrigins = [
+  'http://localhost:3000',  // Local development
+  'https://voice-task-frontend-17op.onrender.com',  // Your deployed frontend
+  'https://voice-task-tracker-frontend.onrender.com'  // Common Render pattern
+];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // For development, allow any origin but log it
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Allowing development origin:', origin);
+        callback(null, true);
+      } else {
+        console.log('Blocked by CORS:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware (only in development)
+// Request logging middleware
 if (process.env.NODE_ENV === 'development') {
   const morgan = require('morgan');
   app.use(morgan('dev'));
   
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`, req.body);
+    next();
+  });
+} else {
+  // Production logging
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
   });
 }
@@ -42,7 +75,21 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV 
+    environment: process.env.NODE_ENV,
+    cors: {
+      allowedOrigins: allowedOrigins,
+      currentOrigin: req.headers.origin
+    }
+  });
+});
+
+// Test endpoint to verify CORS
+app.get('/api/test-cors', (req, res) => {
+  res.json({
+    message: 'CORS test successful!',
+    origin: req.headers.origin,
+    allowedOrigins: allowedOrigins,
+    isAllowed: allowedOrigins.includes(req.headers.origin)
   });
 });
 
@@ -61,10 +108,32 @@ if (process.env.NODE_ENV === 'production') {
     res.json({ 
       message: 'Voice Task Tracker API',
       environment: process.env.NODE_ENV,
-      docs: 'API documentation available at /api-docs'
+      cors: {
+        allowedOrigins: allowedOrigins,
+        currentOrigin: req.headers.origin
+      },
+      endpoints: {
+        health: '/api/health',
+        tasks: '/api/tasks',
+        voice: '/api/voice/parse',
+        testCors: '/api/test-cors'
+      }
     });
   });
 }
+
+// CORS error handler
+app.use((err, req, res, next) => {
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ 
+      error: 'CORS Error',
+      message: `Origin '${req.headers.origin}' is not allowed`,
+      allowedOrigins: allowedOrigins,
+      suggestion: 'Add your frontend URL to allowedOrigins in server.js'
+    });
+  }
+  next(err);
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -83,7 +152,11 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+  res.status(404).json({ 
+    error: 'Endpoint not found',
+    path: req.path,
+    method: req.method
+  });
 });
 
 // Connect to MongoDB
@@ -92,10 +165,12 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('❌ MongoDB connection error:', error.message);
     process.exit(1);
   }
 };
@@ -110,8 +185,9 @@ const startServer = async () => {
       console.log(`
         🚀 Server running in ${process.env.NODE_ENV} mode
         📡 Listening on port ${PORT}
-        📊 MongoDB: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'}
-        🌍 CORS Origin: ${corsOptions.origin}
+        📊 MongoDB: ${mongoose.connection.readyState === 1 ? 'Connected ✅' : 'Disconnected ❌'}
+        🌍 Allowed Origins: ${allowedOrigins.join(', ')}
+        ⏰ Started: ${new Date().toLocaleString()}
       `);
     });
 

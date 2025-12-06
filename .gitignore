@@ -1,0 +1,92 @@
+# -------------------------
+# Node / Express.js ignores
+# -------------------------
+
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment files
+.env
+.env.*.local
+.env.production
+
+# Build/coverage directories
+coverage/
+dist/
+build/
+
+# PM2 logs
+.pnpm-store/
+.pm2/
+
+# Temporary files
+.tmp/
+temp/
+
+# Debug output
+node_modules/*
+debug/
+*.tsbuildinfo
+
+# -------------------------
+# React.js ignores
+# -------------------------
+
+# React build output
+/build
+/.eslintcache
+/.parcel-cache
+
+# Dependency directories
+/client/node_modules/
+client/node_modules/
+
+# dotenv for React
+client/.env
+client/.env.local
+client/.env.*.local
+
+# Misc
+*.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# VS Code settings
+.vscode/
+
+# -------------------------
+# OS / Editor files
+# -------------------------
+
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+
+# -------------------------
+# Docker (optional)
+# -------------------------
+
+docker-data/
+docker-compose.override.yml
+
+# -------------------------
+# Production keys (must ignore)
+# -------------------------
+
+*.pem
+private.key
+public.key

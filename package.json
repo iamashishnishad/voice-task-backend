@@ -18,23 +18,33 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "compromise": "^14.0.0",
+    "compromise-dates": "^2.0.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "mongoose": "^7.0.0",
-    "express-validator": "^7.0.1",
     "date-fns": "^2.30.0",
-    "natural": "^6.3.0",
-    "morgan": "^1.10.0"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "mongoose": "^7.0.0",
+    "morgan": "^1.10.0",
+    "natural": "^6.12.0",
+    "wink-eng-lite-web-model": "^1.8.1",
+    "wink-lexicon": "^2.2.0",
+    "wink-nlp": "^2.4.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22",
-    "jest": "^29.0.0",
-    "supertest": "^6.3.0",
     "eslint": "^8.0.0",
-    "prettier": "^3.0.0"
+    "jest": "^29.0.0",
+    "nodemon": "^2.0.22",
+    "prettier": "^3.0.0",
+    "supertest": "^6.3.0"
   },
-  "keywords": ["task-tracker", "voice", "productivity", "mern"],
+  "keywords": [
+    "task-tracker",
+    "voice",
+    "productivity",
+    "mern"
+  ],
   "author": "Your Name",
   "license": "MIT"
 }
